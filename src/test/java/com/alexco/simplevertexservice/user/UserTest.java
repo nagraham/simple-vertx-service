@@ -1,4 +1,4 @@
-package com.alexco.simplevertexservice;
+package com.alexco.simplevertexservice.user;
 
 import io.vertx.core.json.JsonObject;
 import org.junit.jupiter.api.Test;

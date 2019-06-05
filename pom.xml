@@ -62,6 +62,7 @@
 
     <build>
         <plugins>
+            <!-- plugin to generate the fat jar -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
@@ -103,6 +104,12 @@
                         <argument>${main.verticle}</argument>
                     </arguments>
                 </configuration>
+            </plugin>
+
+            <!-- JUnit 5 requires Surefire version 2.22.1 or higher to be run by Maven commands -->
+            <plugin>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.22.2</version>
             </plugin>
         </plugins>
     </build>

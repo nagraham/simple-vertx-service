@@ -1,4 +1,4 @@
-package com.alexco.simplevertexservice;
+package com.alexco.simplevertexservice.user;
 
 public class User {
     String uuid;
