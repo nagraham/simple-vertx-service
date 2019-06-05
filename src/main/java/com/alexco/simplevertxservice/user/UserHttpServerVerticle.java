@@ -1,7 +1,5 @@
-package com.alexco.simplevertexservice;
+package com.alexco.simplevertxservice.user;
 
-import com.alexco.simplevertexservice.user.GetUserHandler;
-import com.alexco.simplevertexservice.user.PutUserHandler;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
 import io.vertx.core.logging.Logger;
@@ -9,38 +7,29 @@ import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.BodyHandler;
 
-public class MainVerticle extends AbstractVerticle {
-    private static final Logger LOGGER = LoggerFactory.getLogger(MainVerticle.class);
+/**
+ * A verticle encapsulating the HTTP server for the User REST API
+ */
+public class UserHttpServerVerticle extends AbstractVerticle {
+    public static final String CONFIG_HTTP_PORT = "http.server.port";
+    private static final Logger LOGGER = LoggerFactory.getLogger(UserHttpServerVerticle.class);
 
     @Override
     public void start(Future<Void> startFuture) throws Exception {
-        startHttpServer().setHandler(asyncResult -> {
-            if (asyncResult.succeeded()) {
-                startFuture.complete();
-            } else {
-                startFuture.fail(asyncResult.cause());
-            }
-        });
-    }
-
-    private Future<Void> startHttpServer() {
-        Future<Void> future = Future.future();
-
         Router router = setUserRoutes(Router.router(vertx));
 
+        int port = config().getInteger(CONFIG_HTTP_PORT, 8080);
         vertx.createHttpServer()
                 .requestHandler(router)
                 .listen(8080, asyncResult -> {
                     if (asyncResult.succeeded()) {
                         LOGGER.info("Running HTTP Server on port 8080");
-                        future.complete();
+                        startFuture.complete();
                     } else {
                         LOGGER.error("Could not start HTTP Server", asyncResult.cause());
-                        future.fail(asyncResult.cause());
+                        startFuture.fail(asyncResult.cause());
                     }
                 });
-
-        return future;
     }
 
     private Router setUserRoutes(Router router) {
