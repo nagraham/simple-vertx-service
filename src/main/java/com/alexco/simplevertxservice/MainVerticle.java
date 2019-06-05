@@ -10,6 +10,7 @@ import io.vertx.core.json.JsonObject;
  * Deploys all verticles within this application
  */
 public class MainVerticle extends AbstractVerticle {
+    private static final String USER_HTTP_VERTICLE = "com.alexco.simplevertxservice.user.UserHttpServerVerticle";
 
     @Override
     public void start(Future<Void> startFuture) {
@@ -24,14 +25,17 @@ public class MainVerticle extends AbstractVerticle {
 
     private Future<String> deployHttpServerVerticle() {
         Future<String> future = Future.future();
+
         // TODO: refactor config to be read in from JSON file
         JsonObject httpServerConfig = new JsonObject()
                 .put(UserHttpServerVerticle.CONFIG_HTTP_PORT, 8080);
 
-        vertx.deployVerticle(
-                "com.alexco.simplevertxservice.user.UserHttpServerVerticle",
-                new DeploymentOptions().setConfig(httpServerConfig),
-                future);
+        // deploy 3 instances (b/c why the hell not? ... vertx round-robins requests on port 8080 to each instance)
+        DeploymentOptions deploymentOptions = new DeploymentOptions()
+                .setConfig(httpServerConfig)
+                .setInstances(3);
+
+        vertx.deployVerticle(USER_HTTP_VERTICLE, deploymentOptions, future);
 
         return future;
     }
