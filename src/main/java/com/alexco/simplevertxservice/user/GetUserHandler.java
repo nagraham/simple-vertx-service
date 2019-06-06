@@ -1,5 +1,6 @@
 package com.alexco.simplevertxservice.user;
 
+import com.alexco.simplevertxservice.database.UserDatabaseService;
 import io.vertx.core.Handler;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
@@ -9,26 +10,41 @@ import io.vertx.ext.web.RoutingContext;
 public class GetUserHandler implements Handler<RoutingContext> {
     private static final Logger LOGGER = LoggerFactory.getLogger(GetUserHandler.class);
 
-    public static GetUserHandler getInstance() {
-        return new GetUserHandler();
+    UserDatabaseService userDatabaseService;
+
+    private GetUserHandler(UserDatabaseService userDatabaseService) {
+        this.userDatabaseService = userDatabaseService;
+    }
+
+    public static GetUserHandler getInstance(UserDatabaseService userDatabaseService) {
+        return new GetUserHandler(userDatabaseService);
     }
 
     @Override
     public void handle(RoutingContext ctx) {
         String id = ctx.request().getParam("id");
 
-        User u = new User(id, "alex",  32);
-        JsonObject userJson = JsonObject.mapFrom(u);
-
-        LOGGER.info("GET " + u);
-
-        JsonObject response = new JsonObject()
-                .put("success", true)
-                .put("user", userJson);
-
-        ctx.response()
-                .setStatusCode(200)
-                .putHeader("Content-Type", "application/json")
-                .end(response.encode());
+        userDatabaseService.getUserById("id", reply -> {
+            if (reply.succeeded()) {
+                JsonObject user = reply.result();
+                LOGGER.info("User: " + user.mapTo(User.class));
+                JsonObject response = new JsonObject()
+                        .put("success", true)
+                        .put("user", user);
+                ctx.response()
+                        .setStatusCode(200)
+                        .putHeader("Content-Type", "application/json")
+                        .end(response.encode());
+            } else {
+                LOGGER.error("Failed to get user");
+                JsonObject response = new JsonObject()
+                        .put("success", false)
+                        .put("cause", reply.cause());
+                ctx.response()
+                        .setStatusCode(500)
+                        .putHeader("Content-Type", "application/json")
+                        .end(response.encode());
+            }
+        });
     }
 }

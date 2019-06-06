@@ -1,5 +1,6 @@
 package com.alexco.simplevertxservice;
 
+import com.alexco.simplevertxservice.database.UserDatabaseVerticle;
 import com.alexco.simplevertxservice.user.UserHttpServerVerticle;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.DeploymentOptions;
@@ -14,13 +15,20 @@ public class MainVerticle extends AbstractVerticle {
 
     @Override
     public void start(Future<Void> startFuture) {
-        deployHttpServerVerticle().setHandler(asyncResult -> {
+
+        deployUserDatabaseVerticle().compose(id -> deployHttpServerVerticle()).setHandler(asyncResult -> {
             if (asyncResult.succeeded()) {
                 startFuture.complete();
             } else {
                 startFuture.fail(asyncResult.cause());
             }
         });
+    }
+
+    private Future<String> deployUserDatabaseVerticle() {
+        Future<String> future = Future.future();
+        vertx.deployVerticle(new UserDatabaseVerticle(), future);
+        return future;
     }
 
     private Future<String> deployHttpServerVerticle() {

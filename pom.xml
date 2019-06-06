@@ -11,10 +11,6 @@
     <properties>
         <vertx.version>3.7.0</vertx.version>
 
-        <!-- use Java 8 -->
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
-
         <main.verticle>com.alexco.simplevertxservice.MainVerticle</main.verticle>
     </properties>
 
@@ -45,6 +41,32 @@
             <artifactId>vertx-web</artifactId>
         </dependency>
 
+        <!-- to provide Services for cross-Verticle access -->
+        <dependency>
+            <groupId>io.vertx</groupId>
+            <artifactId>vertx-service-proxy</artifactId>
+        </dependency>
+
+        <!-- to generate code for Services -->
+        <dependency>
+            <groupId>io.vertx</groupId>
+            <artifactId>vertx-codegen</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- vertx's JDBC client for database access -->
+        <dependency>
+            <groupId>io.vertx</groupId>
+            <artifactId>vertx-jdbc-client</artifactId>
+        </dependency>
+
+        <!-- HSQLDB for an embedded DB for testing -->
+        <dependency>
+            <groupId>org.hsqldb</groupId>
+            <artifactId>hsqldb</artifactId>
+            <version>2.5.0</version>
+        </dependency>
+
         <!-- Test Dependencies -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
@@ -57,11 +79,57 @@
             <groupId>org.hamcrest</groupId>
             <artifactId>hamcrest</artifactId>
             <version>2.1</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <version>2.28.2</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-junit-jupiter</artifactId>
+            <version>2.28.2</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 
     <build>
         <plugins>
+            <!-- compiler plugin: use Java 8; vertx code gen annotation processor config -->
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.8.1</version>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                    <useIncrementalCompilation>false</useIncrementalCompilation>
+                    <annotationProcessors>
+                        <annotationProcessor>io.vertx.codegen.CodeGenProcessor</annotationProcessor>
+                    </annotationProcessors>
+                    <generatedSourcesDirectory>${project.basedir}/src/main/generated</generatedSourcesDirectory>
+                    <compilerArgs>
+                        <arg>-AoutputDirectory=${project.basedir}/src/main</arg>
+                    </compilerArgs>
+                </configuration>
+            </plugin>
+
+            <!-- clean plugin: clear the generated code -->
+            <plugin>
+                <artifactId>maven-clean-plugin</artifactId>
+                <version>3.1.0</version>
+                <configuration>
+                    <filesets>
+                        <fileset>
+                            <directory>${project.basedir}/src/main/generated</directory>
+                        </fileset>
+                    </filesets>
+                </configuration>
+            </plugin>
+
             <!-- plugin to generate the fat jar -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -93,6 +161,7 @@
                 </executions>
             </plugin>
 
+            <!-- vertx plugin to launch the Main Verticle -->
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>exec-maven-plugin</artifactId>

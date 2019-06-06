@@ -1,5 +1,6 @@
 package com.alexco.simplevertxservice.user;
 
+import com.alexco.simplevertxservice.database.UserDatabaseService;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
 import io.vertx.core.logging.Logger;
@@ -16,7 +17,8 @@ public class UserHttpServerVerticle extends AbstractVerticle {
 
     @Override
     public void start(Future<Void> startFuture) throws Exception {
-        Router router = setUserRoutes(Router.router(vertx));
+        UserDatabaseService userDatabaseService = UserDatabaseService.createProxy(vertx, "user.queue");
+        Router router = setUserRoutes(Router.router(vertx), userDatabaseService);
 
         int port = config().getInteger(CONFIG_HTTP_PORT, 8080);
         vertx.createHttpServer()
@@ -32,8 +34,8 @@ public class UserHttpServerVerticle extends AbstractVerticle {
                 });
     }
 
-    private Router setUserRoutes(Router router) {
-        router.get("/user/:id").handler(GetUserHandler.getInstance());
+    private Router setUserRoutes(Router router, UserDatabaseService userDatabaseService) {
+        router.get("/user/:id").handler(GetUserHandler.getInstance(userDatabaseService));
         router.put().handler(BodyHandler.create());
         router.put("/user/:id").handler(PutUserHandler.getInstance());
         return router;
