@@ -15,7 +15,6 @@ public class MainVerticle extends AbstractVerticle {
 
     @Override
     public void start(Future<Void> startFuture) {
-
         deployUserDatabaseVerticle().compose(id -> deployHttpServerVerticle()).setHandler(asyncResult -> {
             if (asyncResult.succeeded()) {
                 startFuture.complete();

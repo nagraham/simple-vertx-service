@@ -4,21 +4,33 @@ import com.alexco.simplevertxservice.user.User;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.jdbc.JDBCClient;
+import io.vertx.ext.sql.ResultSet;
 import io.vertx.ext.sql.SQLConnection;
 
 public class HsqlUserDatabaseService implements UserDatabaseService {
     private static final Logger LOGGER = LoggerFactory.getLogger(HsqlUserDatabaseService.class);
 
-    protected static final String CREATE_USER_TABLE = "CREATE TABLE if not exists Users (" +
-            "uuid varchar(255), " +
-            "name varchar(255), " +
-            "age integer, " +
-            "PRIMARY KEY(uuid)" +
-            ")";
+    // TODO: Refactor the SQL Strings to not be janky protected static variables, lol
+
+    protected static final String SQL_CREATE_USER_TABLE =
+            " CREATE TABLE if not exists Users (" +
+            " uuid varchar(255), " +
+            " name varchar(255), " +
+            " age integer, " +
+            " PRIMARY KEY(uuid)" +
+            " )";
+
+    protected static final String SQL_CREATE_USER = "INSERT INTO Users values (?, ?, ?)";
+
+    protected static final String SQL_GET_USER =
+            " SELECT uuid as \"uuid\", name as \"name\", age as\"age\" " +
+            " FROM Users " +
+            " WHERE uuid = ?";
 
     private final JDBCClient jdbcClient;
 
@@ -31,7 +43,7 @@ public class HsqlUserDatabaseService implements UserDatabaseService {
                 handler.handle(Future.failedFuture(getConnResult.cause()));
             } else {
                 SQLConnection sqlConnection = getConnResult.result();
-                sqlConnection.execute(CREATE_USER_TABLE, createResult -> {
+                sqlConnection.execute(SQL_CREATE_USER_TABLE, createResult -> {
                     sqlConnection.close();
                     if (createResult.failed()) {
                         LOGGER.error("Failed to create the user table", createResult.cause());
@@ -44,18 +56,44 @@ public class HsqlUserDatabaseService implements UserDatabaseService {
         });
     }
 
-    // TODO: actually call DB
     @Override
     public UserDatabaseService getUserById(String uuid, Handler<AsyncResult<JsonObject>> handler) {
-        LOGGER.info("Getting user by id");
-        User u = new User("uuid-123", "alex",  32);
-        JsonObject userJson = JsonObject.mapFrom(u);
-        handler.handle(Future.succeededFuture(userJson));
+        JsonArray params = new JsonArray().add(uuid);
+        jdbcClient.queryWithParams(SQL_GET_USER, params, result -> {
+            if (result.succeeded()) {
+                ResultSet resultSet = result.result();
+                JsonObject response = new JsonObject();
+                if (resultSet.getRows().size() > 0) {
+                    response.put("found", true);
+                    response.put("user", resultSet.getRows().get(0));
+                } else {
+                    response.put("found", false);
+                }
+                handler.handle(Future.succeededFuture(response));
+            } else {
+                handler.handle(Future.failedFuture(result.cause()));
+            }
+        });
+
         return this;
     }
 
     @Override
-    public UserDatabaseService putUser(JsonObject user, Handler<AsyncResult<Void>> handler) {
+    public UserDatabaseService createUser(JsonObject user, Handler<AsyncResult<Void>> handler) {
+        JsonArray createParams = new JsonArray()
+                .add(user.getString("uuid"))
+                .add(user.getString("name"))
+                .add(user.getInteger("age"));
+
+        jdbcClient.updateWithParams(SQL_CREATE_USER, createParams, result -> {
+            if (result.succeeded()) {
+                handler.handle(Future.succeededFuture());
+            } else {
+                LOGGER.error("Failed to create User", result.cause());
+                handler.handle(Future.failedFuture(result.cause()));
+            }
+        });
+
         return this;
     }
 }

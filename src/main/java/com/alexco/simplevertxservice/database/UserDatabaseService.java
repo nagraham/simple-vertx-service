@@ -18,7 +18,7 @@ public interface UserDatabaseService {
     UserDatabaseService getUserById(String uuid, Handler<AsyncResult<JsonObject>> handler);
 
     @Fluent
-    UserDatabaseService putUser(JsonObject user, Handler<AsyncResult<Void>> handler);
+    UserDatabaseService createUser(JsonObject user, Handler<AsyncResult<Void>> handler);
 
     @GenIgnore
     static UserDatabaseService create(JDBCClient jdbcClient, Handler<AsyncResult<UserDatabaseService>> handler) {

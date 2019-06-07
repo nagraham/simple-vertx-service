@@ -3,6 +3,7 @@ package com.alexco.simplevertxservice.database;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
+import io.vertx.core.json.JsonArray;
 import io.vertx.ext.jdbc.JDBCClient;
 import io.vertx.ext.sql.SQLConnection;
 import org.junit.jupiter.api.BeforeEach;
@@ -45,7 +46,7 @@ class HsqlUserDatabaseServiceTest {
     @Test
     void constructor_happyPath_getsConnectionAndCreatesTable() {
         verify(mockJdbcClient).getConnection(any(Handler.class));
-        verify(mockSqlConnection).execute(eq(HsqlUserDatabaseService.CREATE_USER_TABLE), any(Handler.class));
+        verify(mockSqlConnection).execute(eq(HsqlUserDatabaseService.SQL_CREATE_USER_TABLE), any(Handler.class));
     }
 
     @Test
@@ -93,6 +94,7 @@ class HsqlUserDatabaseServiceTest {
 
         verify(mockSqlConnection).close();
     }
+
 
     private void mockJdbcClientGetConnectionCallback(Future<SQLConnection> future) {
         doAnswer(invocationOnMock -> {
