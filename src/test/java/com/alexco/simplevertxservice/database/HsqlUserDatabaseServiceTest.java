@@ -1,5 +1,6 @@
 package com.alexco.simplevertxservice.database;
 
+import com.alexco.simplevertxservice.TestUtils;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
@@ -63,7 +64,7 @@ class HsqlUserDatabaseServiceTest {
     @Test
     void constructor_getSqlConnectionFails_theGivenHandlerFailsWithCause() {
         reset(mockJdbcClient, mockSqlConnection); // b/c the setup() function sets up the happy path constructor
-        mockJdbcClientGetConnectionCallback(Future.failedFuture(createThrowable("test-exception")));
+        mockJdbcClientGetConnectionCallback(Future.failedFuture(TestUtils.createThrowable("test-exception")));
 
         handler = Future.future();
         hsqlUserDatabaseService = new HsqlUserDatabaseService(mockJdbcClient, handler);
@@ -75,7 +76,7 @@ class HsqlUserDatabaseServiceTest {
 
     @Test
     void constructor_executeCreateTableFails_theGivenHandlerFailsWithCause() {
-        mockSqlConnectionExecuteCallback(Future.failedFuture(createThrowable("test-exception")));
+        mockSqlConnectionExecuteCallback(Future.failedFuture(TestUtils.createThrowable("test-exception")));
 
         handler = Future.future();
         hsqlUserDatabaseService = new HsqlUserDatabaseService(mockJdbcClient, handler);
@@ -87,7 +88,7 @@ class HsqlUserDatabaseServiceTest {
     @Test
     void constructor_executeCreateTableFails_closesTheSqlConnection() {
         reset(mockSqlConnection); // b/c the setup() function sets up the happy path constructor
-        mockSqlConnectionExecuteCallback(Future.failedFuture(createThrowable("test-exception")));
+        mockSqlConnectionExecuteCallback(Future.failedFuture(TestUtils.createThrowable("test-exception")));
 
         handler = Future.future();
         hsqlUserDatabaseService = new HsqlUserDatabaseService(mockJdbcClient, handler);
@@ -112,13 +113,4 @@ class HsqlUserDatabaseServiceTest {
         }).when(mockSqlConnection).execute(anyString(), any(Handler.class));
     }
 
-    private Throwable createThrowable(String msg) {
-        Throwable throwable;
-        try {
-            throw new RuntimeException(msg);
-        } catch (RuntimeException e) {
-            throwable = e;
-        }
-        return throwable;
-    }
 }

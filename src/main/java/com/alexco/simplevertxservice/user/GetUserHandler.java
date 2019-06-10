@@ -23,28 +23,30 @@ public class GetUserHandler implements Handler<RoutingContext> {
     @Override
     public void handle(RoutingContext ctx) {
         String id = ctx.request().getParam("id");
+        JsonObject response = new JsonObject();
 
-        userDatabaseService.getUserById("id", reply -> {
+        userDatabaseService.getUserById(id, reply -> {
             if (reply.succeeded()) {
-                JsonObject user = reply.result();
-                LOGGER.info("User: " + user.mapTo(User.class));
-                JsonObject response = new JsonObject()
-                        .put("success", true)
-                        .put("user", user);
-                ctx.response()
-                        .setStatusCode(200)
-                        .putHeader("Content-Type", "application/json")
-                        .end(response.encode());
+                JsonObject dbPayload = reply.result();
+
+                if (dbPayload.getBoolean("found")) {
+                    response.put("success", true).put("user", dbPayload.getJsonObject("user"));
+                    ctx.response().setStatusCode(200);
+                } else {
+                    response.put("success", false);
+                    response.put("error", "User for id [" + id + "] not found");
+                    ctx.response().setStatusCode(404);
+                }
+
             } else {
                 LOGGER.error("Failed to get user");
-                JsonObject response = new JsonObject()
-                        .put("success", false)
-                        .put("cause", reply.cause());
-                ctx.response()
-                        .setStatusCode(500)
-                        .putHeader("Content-Type", "application/json")
-                        .end(response.encode());
+                response.put("success", false).put("error", "Internal server error");
+                ctx.response().setStatusCode(500);
             }
+
+            ctx.response()
+                    .putHeader("Content-Type", "application/json")
+                    .end(response.encode());
         });
     }
 }
