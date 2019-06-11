@@ -37,7 +37,7 @@ public class UserHttpServerVerticle extends AbstractVerticle {
     private Router setUserRoutes(Router router, UserDatabaseService userDatabaseService) {
         router.get("/user/:id").handler(GetUserHandler.getInstance(userDatabaseService));
         router.put().handler(BodyHandler.create());
-        router.put("/user/:id").handler(PutUserHandler.getInstance());
+        router.put("/user/:id").handler(PutUserHandler.getInstance(userDatabaseService));
         return router;
     }
 }

@@ -85,6 +85,7 @@ public class HsqlUserDatabaseService implements UserDatabaseService {
                 .add(user.getString("name"))
                 .add(user.getInteger("age"));
 
+        // TODO: handle SQLIntegrityConstraintViolationException (creating duplicate user) to return IllegalArgException
         jdbcClient.updateWithParams(SQL_CREATE_USER, createParams, result -> {
             if (result.succeeded()) {
                 handler.handle(Future.succeededFuture());

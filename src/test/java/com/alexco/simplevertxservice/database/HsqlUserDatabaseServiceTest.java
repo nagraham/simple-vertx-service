@@ -96,7 +96,6 @@ class HsqlUserDatabaseServiceTest {
         verify(mockSqlConnection).close();
     }
 
-
     private void mockJdbcClientGetConnectionCallback(Future<SQLConnection> future) {
         doAnswer(invocationOnMock -> {
             Handler<AsyncResult<SQLConnection>> callback = invocationOnMock.getArgument(0);

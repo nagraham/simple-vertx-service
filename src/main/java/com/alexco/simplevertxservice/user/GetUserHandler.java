@@ -10,7 +10,7 @@ import io.vertx.ext.web.RoutingContext;
 public class GetUserHandler implements Handler<RoutingContext> {
     private static final Logger LOGGER = LoggerFactory.getLogger(GetUserHandler.class);
 
-    UserDatabaseService userDatabaseService;
+    private UserDatabaseService userDatabaseService;
 
     private GetUserHandler(UserDatabaseService userDatabaseService) {
         this.userDatabaseService = userDatabaseService;
