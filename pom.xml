@@ -68,6 +68,14 @@
         </dependency>
 
         <!-- Test Dependencies -->
+
+        <!-- used for system tests; no use yet in main code -->
+        <dependency>
+            <groupId>io.vertx</groupId>
+            <artifactId>vertx-web-client</artifactId>
+            <scope>test</scope>
+        </dependency>
+
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-engine</artifactId>
