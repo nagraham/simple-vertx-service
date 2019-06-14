@@ -60,6 +60,12 @@
             <artifactId>vertx-jdbc-client</artifactId>
         </dependency>
 
+        <!-- vertx's config lib -->
+        <dependency>
+            <groupId>io.vertx</groupId>
+            <artifactId>vertx-config</artifactId>
+        </dependency>
+
         <!-- HSQLDB for an embedded DB for testing -->
         <dependency>
             <groupId>org.hsqldb</groupId>
