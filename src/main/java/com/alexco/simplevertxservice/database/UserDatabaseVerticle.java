@@ -14,12 +14,8 @@ public class UserDatabaseVerticle extends AbstractVerticle {
 
     @Override
     public void start(Future<Void> startFuture) {
-        JsonObject config = new JsonObject()
-                .put("url", config().getString(CONFIG_KEY_USER_DB_URL, "jdbc:hsqldb:db/user"))
-                .put("driver_class", config().getString(CONFIG_KEY_JDBC_DRIVER_CLASS, "org.hsqldb.jdbcDriver"))
-                .put("max_pool_size", config().getInteger(CONFIG_KEY_JDBC_MAX_POOL_SIZE, 30));
-
-        JDBCClient client = JDBCClient.createShared(vertx, config);
+        JsonObject jdbcConfig = config().getJsonObject("userdb").getJsonObject("jdbc");
+        JDBCClient client = JDBCClient.createShared(vertx, jdbcConfig);
         UserDatabaseService.create(client, readyHandler -> {
            if (readyHandler.succeeded()) {
                 new ServiceBinder(vertx)

@@ -1,6 +1,5 @@
 package com.alexco.simplevertxservice.database;
 
-import com.alexco.simplevertxservice.user.User;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;

@@ -1,0 +1,9 @@
+{
+  "userdb": {
+    "jdbc": {
+      "url": "jdbc:hsqldb:db/user",
+      "driver_class": "org.hsqldb.jdbcDriver",
+      "max_pool_size": 30
+    }
+  }
+}

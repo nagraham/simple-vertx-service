@@ -22,14 +22,15 @@ public class HsqlUserDatabaseServiceIntegTest {
     private static final int TEST_AGE = 42;
     private static final JsonObject TEST_JSON_USER = userJsonObject(TEST_UUID, TEST_NAME, TEST_AGE);
 
-
     private UserDatabaseService hsqlUserDatabaseService;
 
     @BeforeEach
     void setup(Vertx vertx, VertxTestContext vertxTestContext) {
-        JsonObject config = new JsonObject()
-                .put(UserDatabaseVerticle.CONFIG_KEY_USER_DB_URL, "jdbc:hsqldb:mem:testdb;shutdown=true")
-                .put(UserDatabaseVerticle.CONFIG_KEY_JDBC_MAX_POOL_SIZE, 4);
+        JsonObject jdbcConfig = new JsonObject()
+                .put("url", "jdbc:hsqldb:mem:testdb;shutdown=true")
+                .put("driver_class", "org.hsqldb.jdbcDriver")
+                .put("max_pool_size", 4);
+        JsonObject config = new JsonObject().put("userdb", new JsonObject().put("jdbc", jdbcConfig));
 
         vertx.deployVerticle(
                 new UserDatabaseVerticle(),

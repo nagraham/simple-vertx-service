@@ -12,7 +12,7 @@ import io.vertx.ext.web.handler.BodyHandler;
  * A verticle encapsulating the HTTP server for the User REST API
  */
 public class UserHttpServerVerticle extends AbstractVerticle {
-    public static final String CONFIG_HTTP_PORT = "http.server.port";
+    public static final String CONFIG_PORT = "port";
     private static final Logger LOGGER = LoggerFactory.getLogger(UserHttpServerVerticle.class);
 
     @Override
@@ -20,10 +20,10 @@ public class UserHttpServerVerticle extends AbstractVerticle {
         UserDatabaseService userDatabaseService = UserDatabaseService.createProxy(vertx, "user.queue");
         Router router = setUserRoutes(Router.router(vertx), userDatabaseService);
 
-        int port = config().getInteger(CONFIG_HTTP_PORT, 8080);
+        int port = config().getJsonObject("http").getInteger(CONFIG_PORT);
         vertx.createHttpServer()
                 .requestHandler(router)
-                .listen(8080, asyncResult -> {
+                .listen(port, asyncResult -> {
                     if (asyncResult.succeeded()) {
                         LOGGER.info("Running HTTP Server on port 8080");
                         startFuture.complete();

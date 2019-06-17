@@ -1,27 +1,28 @@
 package com.alexco.simplevertxservice;
 
 import com.alexco.simplevertxservice.database.UserDatabaseVerticle;
-import com.alexco.simplevertxservice.user.UserHttpServerVerticle;
 import io.vertx.config.ConfigRetriever;
 import io.vertx.config.ConfigRetrieverOptions;
 import io.vertx.config.ConfigStoreOptions;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Future;
-import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 
 /**
  * Deploys all verticles within this application
  */
 public class MainVerticle extends AbstractVerticle {
+
+    // deploy via class path so Vertx will instantiate multiple instances
     private static final String USER_HTTP_VERTICLE = "com.alexco.simplevertxservice.user.UserHttpServerVerticle";
 
     @Override
     public void start(Future<Void> startFuture) {
         getConfigRetriever().getConfig(configAsyncResult -> {
             if (configAsyncResult.succeeded()) {
-                deployUserDatabaseVerticle().compose(id -> deployHttpServerVerticle(configAsyncResult.result()))
+                JsonObject config = configAsyncResult.result();
+                deployUserDatabaseVerticle(config).compose(id -> deployHttpServerVerticle(config))
                         .setHandler(asyncResult -> {
                             if (asyncResult.succeeded()) {
                                 startFuture.complete();
@@ -36,19 +37,26 @@ public class MainVerticle extends AbstractVerticle {
     }
 
     private ConfigRetriever getConfigRetriever() {
-        Future<JsonObject> configFuture = Future.future();
-
-        ConfigStoreOptions fileStore = new ConfigStoreOptions()
+        ConfigStoreOptions httpConfigStore = new ConfigStoreOptions()
                 .setType("file")
-                .setConfig(new JsonObject().put("path", "src/main/resources/development.json"));
-        ConfigRetrieverOptions options = new ConfigRetrieverOptions().addStore(fileStore);
+                .setConfig(new JsonObject().put("path", "src/main/resources/http/development.json"));
+
+        ConfigStoreOptions userDbConfigStore = new ConfigStoreOptions()
+                .setType("file")
+                .setConfig(new JsonObject().put("path", "src/main/resources/userdb/development.json"));
+
+        ConfigRetrieverOptions options = new ConfigRetrieverOptions()
+                .addStore(httpConfigStore)
+                .addStore(userDbConfigStore);
 
         return ConfigRetriever.create(vertx, options);
     }
 
-    private Future<String> deployUserDatabaseVerticle() {
+    private Future<String> deployUserDatabaseVerticle(JsonObject config) {
         Future<String> future = Future.future();
-        vertx.deployVerticle(new UserDatabaseVerticle(), future);
+        vertx.deployVerticle(new UserDatabaseVerticle(),
+                new DeploymentOptions().setConfig(config),
+                future);
         return future;
     }
 
